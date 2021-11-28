@@ -37,15 +37,37 @@
 		};
 	};
   };
+  boot.supportedFilesystems = [ "ntfs" ];
 
   services.xserver.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  services.xserver.desktopManager.gnome = {
+  	enable = true;
+	extraGSettingsOverridePackages = with pkgs; [ gnome3.gnome-settings-daemon ];
+	extraGSettingsOverrides = ''
+		[org/gnome/settings-daemon/plugins/media-keys]
+		custom-keybindings=['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']
+		screensaver=['<Shift><Super>underscore']
+		www=@as []
+
+		[org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0]
+		binding='<Super>Return'
+		command='gnome-terminal'
+		name='Gnome Terminal'
+	'';
+  };
   services.xserver.displayManager.gdm.enable = true;
+
+  programs.zsh.enable = true;
+  programs.steam.enable = true;
+
+  environment.variables.EDITOR = "nvim";
+
   users.users = {
 	lyr = {
 		description = "Lyr 7D1h";
 		extraGroups = [ "wheel" "audio" ];
 		isNormalUser = true;
+		shell = pkgs.zsh;
 	};
   };
 
@@ -85,17 +107,54 @@
   # services.printing.enable = true;
 
   # Enable sound.
-  sound.enable = true;
+  security = {
+  	rtkit.enable = true;
+  };
+  services.pipewire = {
+	  enable = true;
+	  alsa.enable = true;
+	  alsa.support32Bit = true;
+	  pulse.enable = true;
+	  # If you want to use JACK applications, uncomment this
+	  #jack.enable = true;
+
+	  # use the example session manager (no others are packaged yet so this is enabled by default,
+	  # no need to redefine it in your config for now)
+	  #media-session.enable = true;
+	  media-session.config.bluez-monitor.rules = [
+	     {
+	      # Matches all cards
+	      matches = [ { "device.name" = "~bluez_card.*"; } ];
+	      actions = {
+		"update-props" = {
+		  "bluez5.reconnect-profiles" = [ "hfp_hf" "hsp_hs" "a2dp_sink" ];
+		  # mSBC is not expected to work on all headset + adapter combinations.
+		  "bluez5.msbc-support" = true;
+		  # SBC-XQ is not expected to work on all headset + adapter combinations.
+		  "bluez5.sbc-xq-support" = true;
+		};
+	      };
+	    }
+	    {
+	      matches = [
+		# Matches all sources
+		{ "node.name" = "~bluez_input.*"; }
+		# Matches all outputs
+		{ "node.name" = "~bluez_output.*"; }
+	      ];
+	      actions = {
+		"node.pause-on-idle" = false;
+	      };
+	    }
+	  ];
+  };
+  sound.enable = false;
   hardware = {
 	enableAllFirmware = true;
   	pulseaudio = {
-		  enable = true;
-		  extraModules = [ pkgs.pulseaudio-modules-bt ];
-		  package = pkgs.pulseaudioFull;
-		  #configFile = pkgs.writeText "default.pa" ''
-	  	#	load-module module-bluetooth-policy
-	  	#	load-module module-bluetooth-discover
-  		#  '';
+		  enable = false;
+#		  extraModules = [ pkgs.pulseaudio-modules-bt ];
+#		  package = pkgs.pulseaudioFull;
 #		  extraConfig = "
 #				load-module module-switch-on-connect
 #		  ";
@@ -103,13 +162,11 @@
 	  };
 	  bluetooth = {
 	  	enable = true;
-	  	settings = {
-	  		General = {
-					Enable = "Source,Sink,Media,Socket";
-				};
-	  	};
+		package = pkgs.bluezFull;
+		disabledPlugins = [ "sap" ];
 	  };
   };
+
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
@@ -118,11 +175,25 @@
   # $ nix search wget
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
-  	vim 
     	wget
 	lsof # List open files
 	file
 	htop
+	tmux
+	vim
+	terraform
+	gnome.dconf-editor
+	git-remote-gcrypt # Encrypt git repos
+	(let 
+	  my-python-packages = python-packages: with python-packages; [ 
+	    pandas
+	    requests
+	    autopep8
+	  ];
+	  python-with-my-packages = python3.withPackages my-python-packages;
+	in
+	python-with-my-packages)
+
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -134,7 +205,6 @@
   # };
 
   # List services that you want to enable:
-  services.blueman.enable = true;
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 
