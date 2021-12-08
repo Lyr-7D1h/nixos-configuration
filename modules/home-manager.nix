@@ -24,6 +24,8 @@ in
     }))
     # (import ../overlays/terraformLatest.nix)
   ];
+
+
   home-manager.users.lyr = {
 	nixpkgs.config.allowUnfree = true;
 
@@ -43,6 +45,7 @@ in
         element-desktop
         bitwarden
         bitwarden-cli
+        nodejs-14_x
 	];
 	# Bluetooth headset media control
 	# services.mpris-proxy.enable = true;
@@ -149,6 +152,10 @@ bindkey '^[^?' backward-kill-word
 
 # Enable reverse search
 bindkey '^R' history-incremental-search-backward
+
+# alt + <- and alt + -> move a word
+bindkey "^[[1;3C" forward-word
+bindkey "^[[1;3D" backward-word
 
 # Adding custom executables
 export PATH="$PATH:$HOME/bin"
