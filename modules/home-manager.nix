@@ -30,6 +30,13 @@ in
 	nixpkgs.config.allowUnfree = true;
 
 	home.packages = with pkgs; [ 
+        vlc
+        nodejs-14_x
+        gnumake
+        jq
+        awscli2
+        neofetch
+        postman
         xclip # needed for nvim system clipboard
         sshpass # connect using ssh with password arg
         ansible
@@ -45,7 +52,7 @@ in
         element-desktop
         bitwarden
         bitwarden-cli
-        nodejs-14_x
+        slack
 	];
 	# Bluetooth headset media control
 	# services.mpris-proxy.enable = true;
@@ -92,6 +99,9 @@ nnoremap <C-h> <C-W><C-H>
 
 	programs.vscode = {
 		enable = true;
+        extensions = with pkgs.vscode-extensions; [
+           asvetliakov.vscode-neovim 
+        ];
 	};
 
     programs.tmux = {
@@ -132,6 +142,7 @@ run '~/.tmux/plugins/tpm/tpm'
 	  };
 	  initExtra = ''
 source ~/.p10k.zsh
+
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='vim'
 else
@@ -157,8 +168,16 @@ bindkey '^R' history-incremental-search-backward
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
 
+bindkey  "^[[H"   beginning-of-line
+bindkey  "^[[F"   end-of-line
+bindkey  "^[[3~"  delete-char
+
+# alt + delete remove word
+bindkey '^[[3;5~' kill-word
+
 # Adding custom executables
 export PATH="$PATH:$HOME/bin"
+export PATH="$PATH:$HOME/.npm/bin"
 	  '';
 	  zplug = {
 	    enable = true;

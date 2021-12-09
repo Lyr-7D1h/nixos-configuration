@@ -125,7 +125,9 @@
 
   networking.firewall.enable = true;
 
-  system.stateVersion = "21.05";
+  system.autoUpgrade.enable = true;
+  system.autoUpgrade.channel = https://nixos.org/channels/nixos-21.11;
 
+  system.stateVersion = "21.05";
 }
 

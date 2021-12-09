@@ -10,7 +10,7 @@
 
   services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ];
 
-  environment.gnome.excludePackages = with pkgs; [ gnome.geary gnome.gnome-music gnome-connections ];
+  environment.gnome.excludePackages = with pkgs; [ gnome.gnome-music gnome-connections ];
 
   services.xserver.desktopManager.gnome = {
     enable = true;
