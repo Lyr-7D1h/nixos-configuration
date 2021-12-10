@@ -63,6 +63,9 @@ in
 	    enable = true;
 	    userName  = "lyr";
 	    userEmail = "lyr-7d1h@pm.me";
+        extraConfig = ''
+[pull]
+  rebase = false'';
 	};
 
 	programs.neovim = {
