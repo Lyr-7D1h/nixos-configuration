@@ -2,12 +2,13 @@
 
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 const { readdir, rename } = require("fs/promises");
 const { exec } = require("child_process");
 const https = require("https");
 
-const WALLPAPERS_PATH = "/home/lyr/Pictures/daily_wallpapers";
+const WALLPAPERS_PATH = "/home/lyr/Pictures/daily_paper";
+
+fs.mkdirSync(WALLPAPERS_PATH, { recursive: true });
 
 function fetchWallpaperPosts() {
   return new Promise((res, rej) => {
