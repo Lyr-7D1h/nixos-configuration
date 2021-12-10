@@ -63,9 +63,9 @@ in
 	    enable = true;
 	    userName  = "lyr";
 	    userEmail = "lyr-7d1h@pm.me";
-        extraConfig = ''
-[pull]
-  rebase = false'';
+        extraConfig = {
+          pull = { rebase = false; };
+        };
 	};
 
 	programs.neovim = {
@@ -135,6 +135,9 @@ run '~/.tmux/plugins/tpm/tpm'
 
 	programs.zsh = {
 	  enable = true;
+      profileExtra = ''
+~/bin/daily_paper
+      '';
 	  shellAliases = {
 	    update = "sudo nixos-rebuild switch";
 	    ssh = "TERM=xterm ssh";
