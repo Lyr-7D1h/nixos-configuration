@@ -16,13 +16,17 @@
   # Enable FN Keys for keychron: https://mikeshade.com/posts/keychron-linux-function-keys/
   boot.kernelParams = [ "hid_apple.fnmode=0" ];
   boot.loader.efi.canTouchEfiVariables = true;
+  # Increase map count, needed for Star Citizen: https://robertsspaceindustries.com/spectrum/community/SC/forum/51473/thread/linux-install-starcitizen-to-linux-howto
+  boot.kernel.sysctl = {"vm.max_map_count" = 16777216; };
   boot.loader.grub = {
     enable = true;
+    default = "saved";
     version = 2;
     device = "nodev";
     efiSupport = true;
     useOSProber = true;
   };
+  boot.initrd.kernelModules = [ "amdgpu" ];
   boot.initrd.luks = {
     reusePassphrases = true;
     devices = {
@@ -42,8 +46,13 @@
       };
     };
   };
+  # Needed for probing windows os
   boot.supportedFilesystems = [ "ntfs" ];
 
+  
+
+  virtualisation.libvirtd.enable = true;
+  programs.dconf.enable = true;
 
   programs.zsh.enable = true;
   programs.steam.enable = true;
@@ -53,7 +62,7 @@
   users.users = {
     lyr = {
       description = "Lyr 7D1h";
-      extraGroups = [ "wheel" "audio" ];
+      extraGroups = [ "wheel" "audio" "libvirtd" ];
       isNormalUser = true;
       shell = pkgs.zsh;
     };
@@ -80,6 +89,19 @@
   sound.enable = true;
   services.ofono.enable = true;
   hardware = {
+    # https://nixos.wiki/wiki/AMD_GPU
+    opengl = {
+      driSupport = true;
+      driSupport32Bit = true;
+      extraPackages = with pkgs; [
+        rocm-opencl-icd
+        rocm-opencl-runtime
+        amdvlk
+      ];
+      extraPackages32 = with pkgs; [
+        driversi686Linux.amdvlk
+      ];
+    };
     enableAllFirmware = true;
     pulseaudio = {
       enable = true;
@@ -100,6 +122,7 @@
   nixpkgs.config.allowUnfree = true;
 
   environment.systemPackages = with pkgs; [
+    virt-manager
     nixpkgs-fmt
     wget
     pavucontrol
@@ -110,17 +133,6 @@
     vim
     nfs-utils
     git-remote-gcrypt # Encrypt git repos
-    (
-      let
-        my-python-packages = python-packages: with python-packages; [
-          pandas
-          requests
-          autopep8
-        ];
-        python-with-my-packages = python3.withPackages my-python-packages;
-      in
-      python-with-my-packages
-    )
   ];
 
   networking.firewall.enable = true;

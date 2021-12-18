@@ -7,6 +7,7 @@
     gnomeExtensions.gsconnect
   ];
   services.xserver.enable = true;
+  services.xserver.videoDrivers = [ "amdgpu" ];
 
   services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ];
 

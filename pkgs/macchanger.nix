@@ -14,5 +14,7 @@ let device = "enp39s0"; in
       ${pkgs.macchanger}/bin/macchanger -r ${device}
     '';
     serviceConfig.Type = "oneshot";
+    reloadIfChanged = false;
+    restartIfChanged = false;
   };
 }

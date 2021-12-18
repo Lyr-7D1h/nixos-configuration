@@ -1,8 +1,12 @@
 { config, pkgs, ... }:
 let
-  unstableTarball =
-    fetchTarball
-      https://github.com/NixOS/nixpkgs-channels/archive/nixos-unstable.tar.gz;
+   unstable = import
+    (builtins.fetchTarball https://github.com/nixos/nixpkgs/tarball/release-21.11)
+    # reuse the current configuration
+    { config = config.nixpkgs.config; };
+  # unstableTarball =
+    # fetchTarball
+    #   https://github.com/NixOS/nixpkgs-channels/archive/nixos-unstable.tar.gz;
   home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/release-21.11.tar.gz";
 in
 {
@@ -10,19 +14,20 @@ in
     (import "${home-manager}/nixos")
   ];
 
-  nixpkgs.config = {
-    packageOverrides = pkgs: {
-      unstable = import unstableTarball {
-        config = config.nixpkgs.config;
-      };
-    };
-  };
+  # nixpkgs.config = {
+  #   packageOverrides = pkgs: {
+  #     unstable = import unstableTarball {
+  #       config = config.nixpkgs.config;
+  #     };
+  #   };
+  # };
 
   nixpkgs.overlays = [
     (import (builtins.fetchTarball {
       url = https://github.com/nix-community/neovim-nightly-overlay/archive/master.tar.gz;
     }))
     # (import ../overlays/terraformLatest.nix)
+    # (import ../overlays/torbrowser.nix)
   ];
 
 
@@ -30,6 +35,14 @@ in
 	nixpkgs.config.allowUnfree = true;
 
 	home.packages = with pkgs; [ 
+        # torbrowserLatest
+        rustup
+        unstable.tor-browser-bundle-bin
+        minikube
+        winePackages.full
+        winetricks
+        lutris
+        minecraft
         vlc
         nodejs-14_x
         gnumake
@@ -53,18 +66,31 @@ in
         bitwarden
         bitwarden-cli
         slack
+        (
+          let
+            my-python-packages = python-packages: with python-packages; [
+              pandas
+              requests
+              autopep8
+            ];
+            python-with-my-packages = python3.withPackages my-python-packages;
+          in
+          python-with-my-packages
+        )
 	];
 	# Bluetooth headset media control
 	# services.mpris-proxy.enable = true;
 
 	services.gpg-agent.enable = true;
 
+    programs.go.enable = true;
 	programs.git = {
 	    enable = true;
 	    userName  = "lyr";
 	    userEmail = "lyr-7d1h@pm.me";
         extraConfig = {
           pull = { rebase = false; };
+          init = { defaultBranch = "master"; };
         };
 	};
 
@@ -78,6 +104,7 @@ in
 			vim-commentary
 			vim-toml
 			auto-pairs
+            nvim-cm-racer
 		];
 		extraConfig = ''
 set number
@@ -106,6 +133,25 @@ nnoremap <C-h> <C-W><C-H>
            asvetliakov.vscode-neovim 
         ];
 	};
+    systemd.user.services = {
+      daily-paper = {
+        Unit = {
+          Description = "Set your daily wallpaper";
+        };
+
+        Service = {
+          ExecStartPre="/bin/sh -c 'until ping -c1 google.com; do sleep 1; done;'";
+          ExecStart = "/home/lyr/bin/daily_paper";
+          Type = "oneshot";
+        };
+
+        Install = {
+          WantedBy= [ "default.target" ];
+        };
+      };
+    };
+    # Automatically start services
+    systemd.user.startServices = "sd-switch";
 
     programs.tmux = {
       enable = true;
@@ -135,9 +181,6 @@ run '~/.tmux/plugins/tpm/tpm'
 
 	programs.zsh = {
 	  enable = true;
-      profileExtra = ''
-~/bin/daily_paper
-      '';
 	  shellAliases = {
 	    update = "sudo nixos-rebuild switch";
 	    ssh = "TERM=xterm ssh";
