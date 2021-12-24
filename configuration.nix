@@ -52,6 +52,7 @@
   
 
   virtualisation.libvirtd.enable = true;
+  virtualisation.docker.enable = true;
   programs.dconf.enable = true;
 
   programs.zsh.enable = true;
@@ -62,7 +63,7 @@
   users.users = {
     lyr = {
       description = "Lyr 7D1h";
-      extraGroups = [ "wheel" "audio" "libvirtd" ];
+      extraGroups = [ "wheel" "audio" "libvirtd" "docker" ];
       isNormalUser = true;
       shell = pkgs.zsh;
     };
@@ -70,17 +71,23 @@
 
   programs.gnupg.agent.enable = true;
 
-  networking.hostName = "home"; # Define your hostname.
 
   # Set your time zone.
   time.timeZone = "Europe/Amsterdam";
 
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = false;
-  networking.interfaces.enp39s0.useDHCP = true;
-  networking.interfaces.wlo1.useDHCP = true;
+  networking = {
+    hostName = "home"; 
+    # Define your hostname.
+    # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+    # Per-interface useDHCP will be mandatory in the future, so this generated config
+    # replicates the default behaviour.
+    useDHCP = false;
+    interfaces.enp39s0.useDHCP = true;
+    firewall = {
+      enable = true;
+    };
+    nameservers = [ "1.1.1.1" "1.0.0.1" ];
+  };
 
   i18n.defaultLocale = "en_US.UTF-8";
 
@@ -135,7 +142,6 @@
     git-remote-gcrypt # Encrypt git repos
   ];
 
-  networking.firewall.enable = true;
 
   system.autoUpgrade.enable = true;
   system.autoUpgrade.channel = https://nixos.org/channels/nixos-21.11;

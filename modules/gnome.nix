@@ -30,6 +30,8 @@
   };
 
   services.xserver.displayManager.gdm.enable = true;
+  # Open gnome keyring on login
+  security.pam.services.gdm.enableGnomeKeyring = true;
 
   # Ports used by gsconnect
   networking.firewall.allowedTCPPortRanges = [

@@ -36,6 +36,10 @@ in
 
 	home.packages = with pkgs; [ 
         # torbrowserLatest
+        wl-clipboard
+        ripgrep
+        gimp
+        yarn
         rustup
         unstable.tor-browser-bundle-bin
         minikube
@@ -50,7 +54,6 @@ in
         awscli2
         neofetch
         postman
-        xclip # needed for nvim system clipboard
         sshpass # connect using ssh with password arg
         ansible
 		spotify 
@@ -140,7 +143,6 @@ nnoremap <C-h> <C-W><C-H>
         };
 
         Service = {
-          ExecStartPre="/bin/sh -c 'until ping -c1 google.com; do sleep 1; done;'";
           ExecStart = "/home/lyr/bin/daily_paper";
           Type = "oneshot";
         };
@@ -156,26 +158,21 @@ nnoremap <C-h> <C-W><C-H>
     programs.tmux = {
       enable = true;
       clock24 = true;
+      keyMode = "vi";
+      terminal = "screen-256color";
       extraConfig = ''
-set -g @plugin 'tmux-plugins/tpm'
-set -g @plugin 'tmux-plugins/tmux-sensible'
-# set -g @plugin "arcticicestudio/nord-tmux"
+set -s copy-command 'wl-copy'
 
 # Allow scrolling with mouse
 set -g mouse on
 # Vim keybindings in copy-mode
 set-window-option -g mode-keys vi
 
-# set -g status-bg "#23272a"
-# set -g status-fg "#eeeeee"
-
 # Vi bindings for moving between planes
 bind h select-pane -L
 bind j select-pane -D
 bind k select-pane -U
 bind l select-pane -R
-
-run '~/.tmux/plugins/tpm/tpm'
 '';
     };
 
