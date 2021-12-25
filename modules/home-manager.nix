@@ -36,6 +36,8 @@ in
 
 	home.packages = with pkgs; [ 
         # torbrowserLatest
+        omnisharp-roslyn # c# support
+        dotnet-sdk # c support
         wl-clipboard
         ripgrep
         gimp
@@ -228,6 +230,7 @@ export PATH="$PATH:$HOME/.npm/bin"
 	  zplug = {
 	    enable = true;
 	    plugins = [
+          { name = "hanjunlee/terragrunt-oh-my-zsh-plugin"; }
 	      { name = "zsh-users/zsh-autosuggestions"; }
 	      { name = "romkatv/powerlevel10k"; tags = [ as:theme depth:1 ]; } # Installations with additional options. For the list of options, please refer to Zplug README.
 	    ];
