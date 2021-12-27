@@ -35,9 +35,11 @@ in
 	nixpkgs.config.allowUnfree = true;
 
 	home.packages = with pkgs; [ 
-        # torbrowserLatest
+        act
+        kubernetes-helm
         omnisharp-roslyn # c# support
         dotnet-sdk # c support
+        github-cli # used in release script
         wl-clipboard
         ripgrep
         gimp
@@ -180,6 +182,11 @@ bind l select-pane -R
 
 	programs.zsh = {
 	  enable = true;
+      enableAutosuggestions = true;
+      enableCompletion = true;
+      enableSyntaxHighlighting = true;
+      autocd = true;
+      defaultKeymap = "emacs";
 	  shellAliases = {
 	    update = "sudo nixos-rebuild switch";
 	    ssh = "TERM=xterm ssh";
