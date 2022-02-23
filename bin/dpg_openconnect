@@ -1,10 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
 # Did not work
 
-# BW_SESSION=`bw unlock --raw`
-# PASSWORD=`bw get password onelogin --session $BW_SESSION`
+ITEM='onelogin'
 
-sudo openconnect --juniper https://homeworker.persgroep.net -u ivo.velthoven@persgroep.net # -p $PASSWORD
+BW_SESSION=${BW_SESSION:-`bw unlock --raw`}
+export BW_SESSION=$BW_SESSION
+bw sync
+
+PASSWORD=`bw get password $ITEM`
+USERNAME=`bw get username $ITEM`
+TOTP=`bw get totp $ITEM`
+
+echo -en "$PASSWORD\n$TOTP" | sudo openconnect --juniper https://homeworker.persgroep.net -u ivo.velthoven@persgroep.net --passwd-on-stdin

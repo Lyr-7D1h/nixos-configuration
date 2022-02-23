@@ -25,6 +25,7 @@
     device = "nodev";
     efiSupport = true;
     useOSProber = true;
+    configurationLimit = 42;
   };
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.initrd.luks = {
@@ -49,11 +50,13 @@
   # Needed for probing windows os
   boot.supportedFilesystems = [ "ntfs" ];
 
-  
+
 
   virtualisation.libvirtd.enable = true;
   virtualisation.docker.enable = true;
   programs.dconf.enable = true;
+
+  programs.wireshark.enable = true;
 
   programs.zsh.enable = true;
   programs.steam.enable = true;
@@ -63,7 +66,7 @@
   users.users = {
     lyr = {
       description = "Lyr 7D1h";
-      extraGroups = [ "wheel" "audio" "libvirtd" "docker" ];
+      extraGroups = [ "wheel" "audio" "video" "libvirtd" "docker" "wireshark" ];
       isNormalUser = true;
       shell = pkgs.zsh;
     };
@@ -83,6 +86,7 @@
     # replicates the default behaviour.
     useDHCP = false;
     interfaces.enp39s0.useDHCP = true;
+    interfaces.wlo1.useDHCP = false;
     firewall = {
       enable = true;
     };
@@ -94,8 +98,43 @@
   services.xserver.layout = "us";
 
   sound.enable = true;
-  services.ofono.enable = true;
-  hardware = {
+  # services.ofono.enable = true;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    jack.enable = true;
+    # Bluetooth
+    media-session.config.bluez-monitor.rules = [
+      {
+      # Matches all cards
+      matches = [ { "device.name" = "~bluez_card.*"; } ];
+      actions = {
+        "update-props" = {
+          "bluez5.reconnect-profiles" = [ "hfp_hf" "hsp_hs" "a2dp_sink" ];
+          # mSBC is not expected to work on all headset + adapter combinations.
+          "bluez5.msbc-support" = true;
+          # SBC-XQ is not expected to work on all headset + adapter combinations.
+          "bluez5.sbc-xq-support" = true;
+        };
+      };
+    }
+    {
+      matches = [
+        # Matches all sources
+        { "node.name" = "~bluez_input.*"; }
+        # Matches all outputs
+        { "node.name" = "~bluez_output.*"; }
+      ];
+      actions = {
+        "node.pause-on-idle" = false;
+      };
+    }
+  ];
+};
+hardware = {
     # https://nixos.wiki/wiki/AMD_GPU
     opengl = {
       driSupport = true;
@@ -111,12 +150,12 @@
     };
     enableAllFirmware = true;
     pulseaudio = {
-      enable = true;
-      extraModules = [ pkgs.pulseaudio-modules-bt ];
-      package = pkgs.pulseaudioFull;
-      extraConfig = "
-      load-module module-switch-on-connect
-      ";
+       enable = false;
+    #   extraModules = [ pkgs.pulseaudio-modules-bt ];
+    #   package = pkgs.pulseaudioFull;
+    #   extraConfig = "
+    #   load-module module-switch-on-connect
+    #   ";
 
     };
     bluetooth = {
@@ -143,7 +182,7 @@
   ];
 
 
-  system.autoUpgrade.enable = true;
+  # system.autoUpgrade.enable = true;
   system.autoUpgrade.channel = https://nixos.org/channels/nixos-21.11;
 
   system.stateVersion = "21.05";

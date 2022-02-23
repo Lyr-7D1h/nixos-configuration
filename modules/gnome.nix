@@ -5,6 +5,7 @@
     gnomeExtensions.appindicator
     gnomeExtensions.caffeine
     gnomeExtensions.gsconnect
+    gnomeExtensions.netspeed
   ];
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "amdgpu" ];

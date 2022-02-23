@@ -4,9 +4,6 @@ let
     (builtins.fetchTarball https://github.com/nixos/nixpkgs/tarball/release-21.11)
     # reuse the current configuration
     { config = config.nixpkgs.config; };
-  # unstableTarball =
-    # fetchTarball
-    #   https://github.com/NixOS/nixpkgs-channels/archive/nixos-unstable.tar.gz;
   home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/release-21.11.tar.gz";
 in
 {
@@ -14,19 +11,12 @@ in
     (import "${home-manager}/nixos")
   ];
 
-  # nixpkgs.config = {
-  #   packageOverrides = pkgs: {
-  #     unstable = import unstableTarball {
-  #       config = config.nixpkgs.config;
-  #     };
-  #   };
-  # };
 
   nixpkgs.overlays = [
     (import (builtins.fetchTarball {
       url = https://github.com/nix-community/neovim-nightly-overlay/archive/master.tar.gz;
     }))
-    # (import ../overlays/terraformLatest.nix)
+    # (import ../overlays/firefox-dev.nix)
     # (import ../overlays/torbrowser.nix)
   ];
 
@@ -35,60 +25,79 @@ in
 	nixpkgs.config.allowUnfree = true;
 
 	home.packages = with pkgs; [ 
-        act
-        kubernetes-helm
-        omnisharp-roslyn # c# support
-        dotnet-sdk # c support
-        github-cli # used in release script
-        wl-clipboard
-        ripgrep
-        gimp
-        yarn
-        rustup
-        unstable.tor-browser-bundle-bin
-        minikube
-        winePackages.full
-        winetricks
-        lutris
-        minecraft
-        vlc
-        nodejs-14_x
-        gnumake
-        jq
-        awscli2
-        neofetch
-        postman
-        sshpass # connect using ssh with password arg
-        ansible
-		spotify 
-		firefox
-		alacritty
-		chromium
-		qbittorrent
-        kubectl
-        nmap
-        terraform
-        discord
-        element-desktop
-        bitwarden
-        bitwarden-cli
-        slack
+      cloudflared
+      fzf
+      libssh # needed for clusterit
+      openssl # fixes python libcrypto not found
+      binutils # fixes python libcrypto not found
+      easyeffects
+      wireshark
+      gcc
+      minikube
+      k9s
+      poetry
+      jetbrains.pycharm-professional
+      audacity
+      obs-studio
+      openconnect
+      mono
+      libreoffice
+      bind # dig and nslookup
+      act # Run Github Action locally
+      kubernetes-helm
+      omnisharp-roslyn # c# support
+      dotnet-sdk # c support
+      github-cli # used in release script
+      wl-clipboard
+      ripgrep
+      gimp
+      yarn
+      rustup
+      unstable.tor-browser-bundle-bin
+      winePackages.full
+      winetricks
+      lutris
+      minecraft
+      vlc
+      nodejs-14_x
+      gnumake
+      jq
+      awscli2
+      neofetch
+      postman
+      sshpass # connect using ssh with password arg
+      ansible
+      spotify 
+      firefox
+      alacritty
+      chromium
+      qbittorrent
+      kubectl
+      nmap
+      terraform
+      discord
+      element-desktop
+      bitwarden
+      bitwarden-cli
+      slack
         (
           let
             my-python-packages = python-packages: with python-packages; [
               pandas
+              oscrypto
               requests
               autopep8
+              black
+              pipx
+              mypy
             ];
-            python-with-my-packages = python3.withPackages my-python-packages;
+            python-with-my-packages = python39.withPackages my-python-packages;
           in
           python-with-my-packages
         )
 	];
-	# Bluetooth headset media control
-	# services.mpris-proxy.enable = true;
 
-	services.gpg-agent.enable = true;
+    services.gpg-agent.enable = true;
 
     programs.go.enable = true;
 	programs.git = {
@@ -111,7 +120,7 @@ in
 			vim-commentary
 			vim-toml
 			auto-pairs
-            nvim-cm-racer
+			nvim-cm-racer
 		];
 		extraConfig = ''
 set number
@@ -136,10 +145,27 @@ nnoremap <C-h> <C-W><C-H>
 
 	programs.vscode = {
 		enable = true;
-        extensions = with pkgs.vscode-extensions; [
-           asvetliakov.vscode-neovim 
-        ];
+        package = pkgs.vscode-fhsWithPackages (ps: with ps; [ rustup zlib ]);
+        # extensions = with pkgs.vscode-extensions; [
+        #    asvetliakov.vscode-neovim 
+        #    ms-dotnettools.csharp
+        # ];
 	};
+    systemd.user.timers = {
+      daily-paper = {
+        Unit = {
+          Description = "Set your daily wallpaper";
+        };
+        Timer = {
+          Unit = "daily-paper";
+          OnUnitActiveSec = "1d";
+          Persistent = true; # Start immediately if missed
+        };
+        Install = {
+          WantedBy= [ "timers.target" ];
+        };
+      };
+    };
     systemd.user.services = {
       daily-paper = {
         Unit = {
@@ -189,6 +215,7 @@ bind l select-pane -R
       defaultKeymap = "emacs";
 	  shellAliases = {
 	    update = "sudo nixos-rebuild switch";
+	    upgrade = "sudo nixos-rebuild switch --upgrade";
 	    ssh = "TERM=xterm ssh";
 	    tf = "terraform";
 	    configure = "vim /etc/nixos/configuration.nix";
@@ -230,14 +257,36 @@ bindkey  "^[[3~"  delete-char
 # alt + delete remove word
 bindkey '^[[3;5~' kill-word
 
+# Needed for obs on wayland
+export QT_QPA_PLATFORM=wayland
+
+# AWS stuff
+export AWS_PROFILE=De-Persgroep---News-Personalisation-squad.dpg-administrator-cf
+export AWS_DEFAULT_REGION=eu-west-1
+export AWS_DEFAULT_SSO_START_URL=https://d-93677093a7.awsapps.com/start
+export AWS_DEFAULT_SSO_REGION=eu-west-1
+
+kaws() {
+  selected=$(aws configure list-profiles | fzf)
+  export AWS_PROFILE=$selected
+}
+
 # Adding custom executables
-export PATH="$PATH:$HOME/bin"
 export PATH="$PATH:$HOME/.npm/bin"
+export PATH="$HOME/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 	  '';
 	  zplug = {
 	    enable = true;
 	    plugins = [
-          { name = "hanjunlee/terragrunt-oh-my-zsh-plugin"; }
+          { name = "plugins/git"; tags = [ from:oh-my-zsh ]; }
+          { name = "plugins/aws"; tags = [ from:oh-my-zsh ]; }
+          { name = "plugins/terraform"; tags = [ from:oh-my-zsh ]; }
+          { name = "plugins/npm"; tags = [ from:oh-my-zsh ]; }
+          { name = "plugins/poetry"; tags = [ from:oh-my-zsh ]; }
+          { name = "plugins/docker"; tags = [ from:oh-my-zsh ]; }
+          { name = "plugins/docker-compose"; tags = [ from:oh-my-zsh ]; }
+          { name = "plugins/tmux"; tags = [ from:oh-my-zsh ]; }
 	      { name = "zsh-users/zsh-autosuggestions"; }
 	      { name = "romkatv/powerlevel10k"; tags = [ as:theme depth:1 ]; } # Installations with additional options. For the list of options, please refer to Zplug README.
 	    ];
