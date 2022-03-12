@@ -25,6 +25,9 @@ in
 	nixpkgs.config.allowUnfree = true;
 
 	home.packages = with pkgs; [ 
+      nix-index
+      python2
+      unzip
       cloudflared
       fzf
       libssh # needed for clusterit
@@ -261,7 +264,7 @@ bindkey '^[[3;5~' kill-word
 export QT_QPA_PLATFORM=wayland
 
 # AWS stuff
-export AWS_PROFILE=De-Persgroep---News-Personalisation-squad.dpg-administrator-cf
+export AWS_PROFILE=DPG-Media---Recosearch.dpg-administrator-cf
 export AWS_DEFAULT_REGION=eu-west-1
 export AWS_DEFAULT_SSO_START_URL=https://d-93677093a7.awsapps.com/start
 export AWS_DEFAULT_SSO_REGION=eu-west-1
@@ -275,6 +278,7 @@ kaws() {
 export PATH="$PATH:$HOME/.npm/bin"
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.tfenv/bin:$PATH"
 	  '';
 	  zplug = {
 	    enable = true;
